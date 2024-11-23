@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Welcome to My Blog!</h2>
+
+{% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.new_article') }}" class="btn btn-primary">新增文章</a>
+{% endif %}
+
+<div>
+    {% for article in articles %}
+        <div>
+            <h3><a href="{{ url_for('main.article_detail', article_id=article.id) }}">{{ article.title }}</a></h3>
+            <p><strong>類型:</strong> {{ article.category }}</p>
+            <p><strong>作者:</strong> {{ article.author }}</p>
+            <img src="{{ article.image_url }}" alt="Article Image" width="150px">
+            <p>{{ article.content[:100] }}... <a href="{{ url_for('main.article_detail', article_id=article.id) }}">閱讀更多..</a></p>
+            <p><small>公布於  {{ article.date_posted.strftime('%Y-%m-%d') }}</small></p>
+        </div>
+        <hr>
+    {% endfor %}
+</div>
+
+
+{% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.logout') }}" class="btn btn-secondary">登出</a>
+{% endif %}
+
+{% endblock %}

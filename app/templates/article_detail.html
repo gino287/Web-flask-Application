@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h2 class="my-4">{{ article.title }}</h2>
+    <p class="text-muted">瀏覽次數: {{ article.views }} | 作者: {{ article.author }} | 公布日期: {{ article.date_posted.strftime('%Y-%m-%d') }}{% if article.last_updated %} | 最後更新日期: {{ article.last_updated.strftime('%Y-%m-%d') }}{% endif %}</p>
+</div>
+
+<div class="text-center">
+    <img src="{{ article.image_url }}" alt="Article Image" class="img-fluid my-3">
+    {% if article.image_url %}
+        <p class="text-muted">Image caption or description</p>
+    {% endif %}
+</div>
+
+<div class="article-content my-4">
+    <p style="font-size: 1.2em; line-height: 1.6;">{{ article.content }}</p>
+</div>
+
+<hr>
+
+<h4>評論區</h4>
+<div class="d-flex justify-content-start align-items-center">
+    <form method="POST" action="{{ url_for('main.like_article', article_id=article.id) }}">
+        <button type="submit" class="btn btn-like">
+            {% if is_liked %}
+                Unlike
+            {% else %}
+                Like
+            {% endif %}
+        </button>
+    </form>
+
+    <form method="POST" class="me-3">
+        {{ rating_form.hidden_tag() }}
+        {{ rating_form.score.label }}
+        {{ rating_form.score(min=1, max=5) }}
+        <button type="submit" class="btn btn-outline-light">評分</button>
+        <p class="ms-3">平均評分: {{ avg_rating|round(1) if avg_rating else '目前沒有人評分..' }}</p>
+    </form>
+    
+
+
+    <form method="POST" class="me-3">
+        {{ comment_form.hidden_tag() }}
+        {{ comment_form.content(cols=40, rows=3, placeholder="Leave a comment...") }}
+        <button type="submit" class="btn btn-outline-light mt-2">評論</button>
+    </form>
+</div>
+
+<hr>
+
+<h4>其他人的留言..</h4>
+<div class="comment-section mt-3">
+    {% for comment in comments %}
+        <div class="comment mb-3">
+            <p>{{ comment.content }}</p>
+            <p class="text-muted small">- {{ comment.user.username }} on {{ comment.date_posted.strftime('%Y-%m-%d') }}</p>
+            {% if current_user.is_authenticated and (comment.user_id == current_user.id or current_user.is_admin) %}
+                <form method="POST" action="{{ url_for('main.delete_comment', comment_id=comment.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this comment?');">刪除</button>
+                </form>
+            {% endif %}
+        </div>
+        <hr>
+    {% endfor %}
+</div>
+
+{% if not comments %}
+    <p>還沒有人留言! 當第一個留言者!</p>
+{% endif %}
+
+
+{% if current_user.is_authenticated and (article.user_id == current_user.id or current_user.is_admin) %}
+    <div class="text-end mt-3">
+        <a href="{{ url_for('main.edit_article', article_id=article.id) }}" class="btn btn-warning">編輯</a>
+        <form method="POST" action="{{ url_for('main.delete_article', article_id=article.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this article?');">刪除</button>
+        </form>
+    </div>
+{% endif %}
+
+<a href="{{ url_for('main.home') }}" class="btn btn-secondary mt-4">首頁</a>
+
+{% endblock %}
